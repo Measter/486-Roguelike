@@ -1,0 +1,38 @@
+# Usage: MAKE           Build whateve is out of date
+#        MAKE -B        Rebuild everything
+#        MAKE clean     Delete build outputs
+
+TASMFLAGS = /zi /l /isrc
+TPCFLAGS = /Isrc /Uobj /Oobj /$E- /$G+ /$N+ /$Q+ /$R+ /$S+
+
+# First target is the default
+all: rltut.exe clrpal.exe
+
+rltut.exe: src\rltut.pas src\tiles.pas obj\screen.tpu
+    tpc $(TPCFLAGS) /E. src\rltut
+
+clrpal.exe: src\clrpal.pas obj\svga.tpu
+    tpc $(TPCFLAGS) /E. src\clrpal
+
+obj\screen.tpu: src\screen.pas obj\svga.tpu src\tiles.pas
+    tpc $(TPCFLAGS) /Eobj src\screen
+                          
+# The unit must be rebuilt when either its source or linked OBJ changes.
+obj\svga.tpu: src\svga.pas obj\svgainit.obj obj\svgadraw.obj
+    tpc $(TPCFLAGS) /Eobj src\svga
+
+src\tile.pas: src\tile.bin
+
+obj\svgadraw.obj: src\svgadraw.asm src\tseng.inc
+    tasm $(TASMFLAGS) src\svgadraw.asm,obj\svgadraw.obj
+obj\svgainit.obj: src\svgainit.asm src\tseng.inc
+    tasm $(TASMFLAGS) src\svgainit.asm,obj\svgainit.obj
+
+clean:
+    del src\*.bak
+    del obj\*.obj
+    del obj\*.tpu
+    del *.lst
+    del rltut.exe
+    del clrpal.exe
+
