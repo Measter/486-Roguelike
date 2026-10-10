@@ -1,7 +1,7 @@
 IDEAL
 MODEL MEDIUM, PASCAL
 P486
-
+        PUBLIC present
         PUBLIC set_tiles
         PUBLIC draw_tile
         PUBLIC draw_tiles
@@ -10,11 +10,73 @@ P486
 INCLUDE "tseng.inc"
 
         DATASEG
+EXTRN   DrawBuffer:Byte
 
 TRANSP  EQU     0FFh
 
         CODESEG
         LOCALS
+
+; Flips between the two draw buffers
+; We do this by setting the linear scan address to
+; 0 or 800*600
+PROC present FAR
+        cmp     [BYTE DrawBuffer], 1
+        je      @@buffer1
+
+        ; Buffer 0 lives at 000000h
+        cli
+        mov     dx, 03D4h
+
+        ; Address bits 7:0
+        mov     ax, 000Dh
+        out     dx, ax
+
+        ; Address bits 15:8
+        mov     ax, 000Ch
+        out     dx, ax
+
+        ; Address bits 19:16. This register also has the
+        ; cursor address, so let's not clobber that
+        mov     al, 33h
+        out     dx, al
+        inc     dx
+        in      al, dx
+        and     al, NOT 7h
+        out     dx, al
+
+        sti
+        mov     [DrawBuffer], 1
+
+        jmp     @@exit
+@@buffer1:
+        ; Buffer 1 lives at 75300h, but the address is a DWORD offset
+        ; so we divide by 4 to get 1D4C0h
+        cli
+        mov     dx, 03D4h
+
+        ; Address bits 7:0
+        mov     ax, 0C00Dh
+        out     dx, ax
+
+        ; Address bits 15:8
+        mov     ax, 0D40Ch
+        out     dx, ax
+
+        ; Address bits 19:16
+        mov     al, 33h
+        out     dx, al
+        inc     dx
+        in      al, dx
+        and     al, NOT 7h
+        or      al, 01h
+        out     dx, al
+
+        sti
+        mov     [BYTE DrawBuffer], 0
+
+@@exit: ret
+ENDP present
 
 PROC draw_box FAR
         ARG     @@Colour: BYTE, @@X: WORD, @@Y: WORD, \
@@ -53,6 +115,10 @@ PROC draw_box FAR
         mul     ecx
         movzx   ecx, [WORD @@X]
         add     eax, ecx
+        cmp     [BYTE DrawBuffer], 1
+        jne     @@setdest
+        add     eax, Buffer1Address
+@@setdest:
         mov     [DWORD FS:ACLDA], eax
 
         mov     ax, [WORD @@Width]
@@ -132,7 +198,12 @@ PROC draw_tile FAR
         movzx   ebx, [BYTE @@X]
         add     eax, ebx
         shl     eax, 4
-        
+
+        cmp     [BYTE DrawBuffer], 1
+        jne     @@setmmu
+        add     eax, Buffer1Address
+
+@@setmmu:
         mov     [DWORD FS:MMU0MBP], eax
 
         ; Set FG
@@ -200,13 +271,17 @@ PROC draw_tiles FAR
         
         ; Draw loop
         mov     cx, 36              ; CX = Row Count
-        mov     [DWORD FS:MMU0MBP], 0
+
+        ; Find out which buffer to draw into
+        cmp     [BYTE DrawBuffer], 1
+        je      @@buffer1
+        mov     [DWORD FS:MMU0MBP], Buffer0Address
+        jmp     @@row_loop
+@@buffer1:
+        mov     [DWORD FS:MMU0MBP], Buffer1Address
+
 @@row_loop:
         mov     edx, 0
-        ; Set MMU0 Aperture location per row
-        ; We move down by one row of tiles
-        add     [DWORD FS:MMU0MBP], 800 * 16
-
         mov     bx, 0
 @@col_loop:
                                 ; FS: ACL Registers
@@ -262,6 +337,10 @@ PROC draw_tiles FAR
         inc     dx
         cmp     dx, 50
         jne     @@col_loop
+
+        ; Set MMU0 Aperture location per row
+        ; We move down by one row of tiles
+        add     [DWORD FS:MMU0MBP], 800 * 16
 
         dec     cx
         jnz     @@row_loop

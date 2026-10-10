@@ -126,11 +126,16 @@ begin
     PlayerY := MapHeight div 2;
     UpdateViewport;
 
+    {We only need to do this bit once, to make sure the VRAM
+     doesn't have garbage}
+    Screen.Clear;
+
     while True do begin
         Screen.SetTiles;
         Screen.DrawTiles(@Floor);
         Screen.DrawTiles(@Map);
         DrawEntity(PlayerX, PlayerY, TilePlayer, ClrWhite, ClrClear);
+        Screen.Present;
 
         InputKey := ReadKey;
         if InputKey <> #0 then InputFunc := False else

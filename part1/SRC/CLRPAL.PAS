@@ -20,6 +20,7 @@ begin
     end;
 
     init_palette;
+    draw_box(0, 0, 0, 800, 600);
 
     for Y := 0 to $F do begin
         DrawY := StartY + Word(Y) * (BoxSize + BoxSpacing);
@@ -29,6 +30,8 @@ begin
             draw_box(Clr, DrawX, DrawY, BoxSize, BoxSize);
         end;
     end;
+
+    present;
 
     ReadKey;
     

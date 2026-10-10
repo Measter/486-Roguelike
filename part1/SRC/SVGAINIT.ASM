@@ -8,6 +8,7 @@ P486
 INCLUDE "tseng.inc"
 
         DATASEG
+EXTRN   DrawBuffer:Byte
 
 ; Place to store the previous mode so we can restore it
 TextMode        DB ?
@@ -164,6 +165,8 @@ PROC init_svga FAR
         mov     [ES:MMUCR], al
         mov     [BYTE ES:ACLRLC], ER_NONE
 
+        ; Start drawing into the offscreen buffer
+        mov     [BYTE DrawBuffer], 1
 
 @@yay:  mov     al, 1
         jmp     @@exit

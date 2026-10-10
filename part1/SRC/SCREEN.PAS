@@ -32,6 +32,8 @@ procedure LoadTiles;
 procedure SetTiles;
 procedure DrawTile(X, Y: Byte; TileId : Tile; Fg, Bg: Byte);
 procedure DrawTiles(Screen: Pointer);
+procedure Clear;
+procedure Present;
 
 implementation
 uses Svga;
@@ -70,6 +72,18 @@ begin
     Reset(F);
     Read(F, TileData);
     Close(F);
+end;
+
+procedure Clear;
+begin
+    Svga.draw_box(0, 0, 0, 800, 600);
+    Present;
+    Svga.draw_box(0, 0, 0, 800, 600);
+end;
+
+procedure Present;
+begin
+    if Enabled = True then svga.present;
 end;
 
 procedure SetTiles;

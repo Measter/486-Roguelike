@@ -93,4 +93,6 @@ ACLBROP         EQU     09Eh    ; Background ROP
 ACLFROP         EQU     09Fh    ; Foreground ROP
 ACLDA           EQU     0A0h    ; Destination Address
 
-PatternVidAddress       EQU     800000 ; Above frame buffer
+Buffer0Address          EQU     0
+Buffer1Address          EQU     800 * 600
+PatternVidAddress       EQU     960000 ; Above the second buffer
