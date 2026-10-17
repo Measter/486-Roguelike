@@ -6,22 +6,29 @@ TASMFLAGS = /zi /l /isrc
 TPCFLAGS = /Isrc /Uobj /Oobj /$E- /$G+ /$N+ /$Q+ /$R+ /$S+
 
 # First target is the default
-all: rltut.exe clrpal.exe
+all: rltut.exe clrpal.exe scancode.exe
 
-rltut.exe: src\rltut.pas src\tiles.pas obj\screen.tpu
+scancode.exe: src\scancode.pas
+    tpc $(TPCFLAGS) /E. src\scancode
+
+rltut.exe: src\rltut.pas obj\types.tpu obj\screen.tpu
     tpc $(TPCFLAGS) /E. src\rltut
 
 clrpal.exe: src\clrpal.pas obj\svga.tpu
     tpc $(TPCFLAGS) /E. src\clrpal
 
-obj\screen.tpu: src\screen.pas obj\svga.tpu src\tiles.pas
+obj\screen.tpu: src\screen.pas obj\svga.tpu obj\types.tpu
     tpc $(TPCFLAGS) /Eobj src\screen
-                          
+
 # The unit must be rebuilt when either its source or linked OBJ changes.
 obj\svga.tpu: src\svga.pas obj\svgainit.obj obj\svgadraw.obj
     tpc $(TPCFLAGS) /Eobj src\svga
 
-src\tile.pas: src\tile.bin
+obj\types.tpu: src\types.pas obj\consts.tpu
+	tpc $(TPCFLAGS) /Eobj src\types
+
+obj\consts.tpu: src\consts.pas
+	tpc $(TPCFLAGS) /Eobj src\consts
 
 obj\svgadraw.obj: src\svgadraw.asm src\tseng.inc
     tasm $(TASMFLAGS) src\svgadraw.asm,obj\svgadraw.obj
@@ -33,6 +40,5 @@ clean:
     del obj\*.obj
     del obj\*.tpu
     del *.lst
-    del rltut.exe
-    del clrpal.exe
+    del *.exe
 

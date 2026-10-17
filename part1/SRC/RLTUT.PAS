@@ -1,19 +1,11 @@
 program rltut;
-uses Crt, Screen;
-
-const
-	MapWidth = 80;
-    MapHeight = 50;
-    MapLength = MapHeight * MapWidth;
-
-type
-	Dir = (Left, Right, Up, Down);
-    TMap = array[0..MapLength-1] of TTile;
+uses Crt, Screen, Consts, Types;
 
 var
     Floor: TMap;
     Map: TMap;
-    PlayerX, PlayerY: Byte;
+    PlayerX: TMapX;
+    PlayerY: TMapY;
 
 procedure InitFloor;
 const
@@ -48,31 +40,6 @@ begin
     end;
 end;
 
-procedure DrawMap(var M: TMap);
-var
-    ScreenX, ScreenY, MapX, MapY: Byte;
-    TileI: Word;
-begin
-    for ScreenY := 0 to ScreenHeight-1 do begin
-        MapY := ViewportY + ScreenY;
-        for ScreenX := 0 to ScreenWidth-1 do begin
-            MapX := ViewportX + ScreenX;
-            TileI := MapY * MapWidth + MapX;
-            Screen.DrawTile(
-                ScreenX, ScreenY,
-                M[TileI].TileId,
-                M[TileI].Fg,
-                M[TileI].Bg
-            );
-        end;
-    end;
-end;
-
-var
-    IsOk: Boolean;
-    InputKey: Char;
-    InputFunc: Boolean;
-
 procedure UpdateViewport;
 begin
     if PlayerX <= (ScreenWidth div 2) then
@@ -90,7 +57,7 @@ begin
         ViewportY := PlayerY - (ScreenHeight div 2);
 end;
 
-procedure Move(D: Dir);
+procedure Move(D: TDir);
 begin
     if (D = Left) and (PlayerX > 0) then Dec(PlayerX)
     else if (D = Right) and (PlayerX < MapWidth-1) then Inc(PlayerX)
@@ -100,7 +67,7 @@ begin
     UpdateViewport;
 end;
 
-procedure DrawEntity(X, Y: Byte; T: Tile; Fg, Bg: Byte);
+procedure DrawEntity(X: TMapX; Y: TMapY; T: Tile; Fg, Bg: Byte);
 begin
 	Screen.DrawTile(
         X, Y,
@@ -108,6 +75,39 @@ begin
     );
 end;
 
+procedure GetEvent(var Event: TEvent);
+var
+    InputKey: Char;
+    InputFunc: Boolean;
+begin
+	InputKey := ReadKey;
+    if InputKey <> #0 then InputFunc := False else
+    begin
+        InputFunc := True;
+        InputKey := ReadKey;
+    end;
+
+    Event.Kind := NoAction;
+    if InputKey = #$1B {Escape} then Event.Kind := EscapeAction;
+    if InputFunc then
+		if InputKey = #$4B then begin
+        	Event.Kind := MoveAction;
+			Event.Dir := Left;
+        end else if InputKey = #$4D then begin
+            Event.Kind := MoveAction;
+			Event.Dir := Right;
+        end else if InputKey = #$48 then begin
+            Event.Kind := MoveAction;
+			Event.Dir := Up;
+        end else if InputKey = #$50 then begin
+            Event.Kind := MoveAction;
+			Event.Dir := Down;
+        end;
+end;
+
+var
+    IsOk: Boolean;
+	Event: TEvent;
 begin
     Screen.LoadTiles;
     Screen.Enabled := True;
@@ -137,19 +137,11 @@ begin
         DrawEntity(PlayerX, PlayerY, TilePlayer, ClrWhite, ClrClear);
         Screen.Present;
 
-        InputKey := ReadKey;
-        if InputKey <> #0 then InputFunc := False else
-        begin
-            InputFunc := True;
-            InputKey := ReadKey;
+		GetEvent(Event);
+        case Event.Kind of
+			EscapeAction: Break;
+            MoveAction: Move(Event.Dir);
         end;
-
-        if InputKey = #$1B then Break;
-        if InputFunc then
-			if InputKey = #$4B then Move(Left)
-            else if InputKey = #$4D then Move(Right)
-            else if InputKey = #$48 then Move(Up)
-            else if InputKey = #$50 then Move(Down);
     end;
 
     Screen.Deinit;

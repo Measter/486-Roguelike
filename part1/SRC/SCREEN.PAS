@@ -1,36 +1,17 @@
 unit Screen;
 interface
-const
-	ClrWhite = $1D;
-    ClrBlack = $10;
-    ClrFloor1 = $EA;
-    ClrFloor2 = $D1;
-    ClrFloor3 = $D2;
-    ClrFloor4 = $D3;
-    ClrFloor5 = $BB;
-    ClrClear = $FF;
-
-    ScreenWidth = 50;
-    ScreenHeight = 36;
-
-{$I tiles.pas}
-
-type
-	TTile = record
-    	TileId: Tile;
-		Fg, Bg: Byte;
-    end;
-
+uses Consts, Types;
 var
 	Enabled: Boolean;
-    ViewportX, ViewportY: Byte;
+    ViewportX: TMapX;
+	ViewportY: TMapY;
 
 function Init: Boolean;
 procedure Deinit;
 procedure LoadTiles;
 
 procedure SetTiles;
-procedure DrawTile(X, Y: Byte; TileId : Tile; Fg, Bg: Byte);
+procedure DrawTile(X: TMapX; Y: TMapY; TileId : Tile; Fg, Bg: Byte);
 procedure DrawTiles(Screen: Pointer);
 procedure Clear;
 procedure Present;
@@ -39,7 +20,6 @@ implementation
 uses Svga;
 
 const
-    ScreenLength = ScreenWidth * ScreenHeight;
 	TileDataLength = TileCount * 32;
 
 type
@@ -91,12 +71,12 @@ begin
     if Enabled = True then set_tiles;
 end;
 
-procedure DrawTile(X, Y: Byte; TileId: Tile; Fg, Bg: Byte);
+procedure DrawTile(X: TMapX; Y: TMapY; TileId: Tile; Fg, Bg: Byte);
 begin
     if Enabled = True then
         draw_tile(@TileData,
                   Byte(TileId), Fg, Bg,
-                  X - ViewportX, Y - ViewportY
+                  Byte(X - ViewportX), Byte(Y - ViewportY)
         );
 end;
 
