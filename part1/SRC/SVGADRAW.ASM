@@ -263,7 +263,7 @@ PROC draw_tiles FAR
 
         ; Offset for the start of the viewport
         movzx   ax, [BYTE @@ViewY]
-        imul    ax, ax, 50
+        imul    ax, ax, 80
         movzx   cx, [Byte @@ViewX]
         add     ax, cx
         imul    ax, ax, TILESIZE
@@ -341,6 +341,7 @@ PROC draw_tiles FAR
         ; Set MMU0 Aperture location per row
         ; We move down by one row of tiles
         add     [DWORD FS:MMU0MBP], 800 * 16
+        add		si, 30 * TILESIZE
 
         dec     cx
         jnz     @@row_loop
