@@ -22,7 +22,7 @@ struct Tile {
 fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
 
-    let tilemap = ImageReader::open("../kenney_1-bit-pack/Tilesheet/monochrome.png")?
+    let tilemap = ImageReader::open("../../kenney_1-bit-pack/Tilesheet/monochrome.png")?
         .decode()?
         .to_luma8();
 
