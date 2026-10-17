@@ -173,10 +173,12 @@ PROC set_tiles FAR
         ret
 ENDP set_tiles
 
+TILELIGHT		EQU 0
+TILEDARK		EQU 3
 TILEID          EQU 0
 TILEFG          EQU 1
 TILEBG          EQU 2
-TILESIZE        EQU 3
+TILESIZE        EQU 8
 
 PROC draw_tile FAR
         ARG     @@TileData: DWORD,\

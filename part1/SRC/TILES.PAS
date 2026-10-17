@@ -1,10 +1,11 @@
 const
-    TileCount = 4;
+    TileCount = 5;
 
 type
     Tile = (
         TileEmpty,
         TileFloorA,
         TileFloorB,
-        TilePlayer
+        TilePlayer,
+        TileWall
     );

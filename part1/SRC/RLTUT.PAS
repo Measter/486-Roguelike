@@ -1,78 +1,48 @@
 program rltut;
-uses Crt, Screen, Consts, Types;
+uses Crt, Screen, Consts, Types, Entity, Map;
 
-var
-    Floor: TMap;
-    Map: TMap;
-    PlayerX: TMapX;
-    PlayerY: TMapY;
-
-procedure InitFloor;
 const
-    FlrClr: Array[0..4] of Byte = (
-        ClrFloor1, ClrFloor2, ClrFloor3, ClrFloor4, ClrFloor5
-    );
-var
-    I, Rt: Word;
-    T: Tile;
-begin
-    for I := 0 to MapLength-1 do begin
-        Rt := Random(20);
-        if Rt < 2 then T := TileFloorA
-        else if Rt < 4 then T := TileFloorB
-        else T := TileEmpty;
+	NumEntities = 32;
 
-        Rt := Random(5);
-        Floor[I].TileId := T;
-        Floor[I].Fg := FlrClr[Rt];
-        Floor[I].Bg := ClrBlack;
+var
+    GameMap: TGameMap;
+    Player: TEntity;
+    Entities: array[1..NumEntities] of TEntity;
+
+procedure InitEntities;
+var
+	I: Byte;
+begin
+	for I := 1 to NumEntities do begin
+		Entities[I].State := Unused;
     end;
 end;
 
-procedure InitMap;
+procedure DrawEntities;
 var
-    I: Word;
+	I: Byte;
 begin
-    for I := 0 to MapLength-1 do begin
-        Map[I].TileId := TileEmpty;
-        Map[I].Fg := ClrWhite;
-        Map[I].Bg := ClrClear;
+	for I := 1 to NumEntities do begin
+		if Entities[I].State <> Unused then
+        	Entities[I].Draw;
     end;
 end;
 
 procedure UpdateViewport;
 begin
-    if PlayerX <= (ScreenWidth div 2) then
+    if Player.X <= (ScreenWidth div 2) then
         ViewportX := 0
-    else if PlayerX >= (MapWidth - (ScreenWidth div 2)) then
+    else if Player.X >= (MapWidth - (ScreenWidth div 2)) then
         ViewportX := MapWidth - ScreenWidth
     else
-        ViewportX := PlayerX - (ScreenWidth div 2);
+        ViewportX := Player.X - (ScreenWidth div 2);
 
-    if PlayerY <= (ScreenHeight div 2) then
+    if Player.Y <= (ScreenHeight div 2) then
         ViewportY := 0
-    else if PlayerY >= (MapHeight - (ScreenHeight div 2)) then
+    else if Player.Y >= (MapHeight - (ScreenHeight div 2)) then
         ViewportY := MapHeight - ScreenHeight
     else
-        ViewportY := PlayerY - (ScreenHeight div 2);
-end;
-
-procedure Move(D: TDir);
-begin
-    if (D = Left) and (PlayerX > 0) then Dec(PlayerX)
-    else if (D = Right) and (PlayerX < MapWidth-1) then Inc(PlayerX)
-    else if (D = Up) and (PlayerY > 0) then Dec(PlayerY)
-    else if (D = Down) and (PlayerY < MapHeight-1) then Inc(PlayerY);
-
-    UpdateViewport;
-end;
-
-procedure DrawEntity(X: TMapX; Y: TMapY; T: Tile; Fg, Bg: Byte);
-begin
-	Screen.DrawTile(
-        X, Y,
-        T, Fg, Bg
-    );
+        ViewportY := Player.Y - (ScreenHeight div 2);
 end;
 
 procedure GetEvent(var Event: TEvent);
@@ -118,12 +88,20 @@ begin
        halt(1);
     end;
 
-    Randomize;
-    InitFloor;
-    InitMap;
+    Player.Init(
+		MapWidth div 2,
+        MapHeight div 2,
+        TilePlayer,
+        ClrWhite,
+        ClrClear
+    );
 
-    PlayerX := MapWidth div 2;
-    PlayerY := MapHeight div 2;
+    Randomize;
+    GameMap.Init;
+    InitEntities;
+
+    Entities[1].Init(10, 20, TilePlayer, ClrRed, ClrClear);
+
     UpdateViewport;
 
     {We only need to do this bit once, to make sure the VRAM
@@ -132,15 +110,18 @@ begin
 
     while True do begin
         Screen.SetTiles;
-        Screen.DrawTiles(@Floor);
-        Screen.DrawTiles(@Map);
-        DrawEntity(PlayerX, PlayerY, TilePlayer, ClrWhite, ClrClear);
+        GameMap.Draw;
+        DrawEntities;
+        Player.Draw;
         Screen.Present;
 
 		GetEvent(Event);
         case Event.Kind of
 			EscapeAction: Break;
-            MoveAction: Move(Event.Dir);
+            MoveAction: begin
+				Player.Move(GameMap, Event.Dir);
+                UpdateViewport;
+            end
         end;
     end;
 

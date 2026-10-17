@@ -11,11 +11,17 @@ all: rltut.exe clrpal.exe scancode.exe
 scancode.exe: src\scancode.pas
     tpc $(TPCFLAGS) /E. src\scancode
 
-rltut.exe: src\rltut.pas obj\types.tpu obj\screen.tpu
+rltut.exe: src\rltut.pas obj\map.tpu obj\entity.tpu obj\types.tpu obj\screen.tpu
     tpc $(TPCFLAGS) /E. src\rltut
 
 clrpal.exe: src\clrpal.pas obj\svga.tpu
     tpc $(TPCFLAGS) /E. src\clrpal
+
+obj\map.tpu: src\map.pas obj\screen.tpu obj\consts.tpu obj\types.tpu src\tiles.pas
+	tpc $(TPCFLAGS) /Eobj src\map
+
+obj\entity.tpu: src\entity.pas obj\screen.tpu obj\types.tpu obj\consts.tpu obj\map.tpu
+	tpc $(TPCFLAGS) /Eobj src\entity
 
 obj\screen.tpu: src\screen.pas obj\svga.tpu obj\types.tpu
     tpc $(TPCFLAGS) /Eobj src\screen
