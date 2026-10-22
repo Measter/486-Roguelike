@@ -260,6 +260,15 @@ PROC draw_tiles FAR
         mov     ax, MemMapRegSeg
         mov     fs, ax
 
+        ; Find out which buffer to draw into
+        cmp     [BYTE DrawBuffer], 1
+        je      @@buffer1
+        mov     [DWORD FS:MMU0MBP], Buffer0Address
+        jmp     @@done_buffer
+@@buffer1:
+        mov     [DWORD FS:MMU0MBP], Buffer1Address
+@@done_buffer:
+
         lgs     si, [DWORD @@Map]
         lds     di, [DWORD @@TileData]
 
@@ -270,17 +279,9 @@ PROC draw_tiles FAR
         add     ax, cx
         imul    ax, ax, TILESIZE
         add     si, ax
-        
+
         ; Draw loop
         mov     cx, 36              ; CX = Row Count
-
-        ; Find out which buffer to draw into
-        cmp     [BYTE DrawBuffer], 1
-        je      @@buffer1
-        mov     [DWORD FS:MMU0MBP], Buffer0Address
-        jmp     @@row_loop
-@@buffer1:
-        mov     [DWORD FS:MMU0MBP], Buffer1Address
 
 @@row_loop:
         mov     edx, 0
