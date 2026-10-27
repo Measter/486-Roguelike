@@ -16,6 +16,11 @@ type
     TMapX = 0..MapWidth-1;
     TMapY = 0..MapHeight-1;
 
+    TPos = record
+		X: TMapX;
+        Y: TMapY;
+    end;
+
     TAction = (NoAction, EscapeAction, MoveAction);
     TDir = (Left, Right, Up, Down);
 

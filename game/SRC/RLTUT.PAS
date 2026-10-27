@@ -30,19 +30,19 @@ end;
 
 procedure UpdateViewport;
 begin
-    if Player.X <= (ScreenWidth div 2) then
+    if Player.Pos.X <= (ScreenWidth div 2) then
         ViewportX := 0
-    else if Player.X >= (MapWidth - (ScreenWidth div 2)) then
+    else if Player.Pos.X >= (MapWidth - (ScreenWidth div 2)) then
         ViewportX := MapWidth - ScreenWidth
     else
-        ViewportX := Player.X - (ScreenWidth div 2);
+        ViewportX := Player.POs.X - (ScreenWidth div 2);
 
-    if Player.Y <= (ScreenHeight div 2) then
+    if Player.Pos.Y <= (ScreenHeight div 2) then
         ViewportY := 0
-    else if Player.Y >= (MapHeight - (ScreenHeight div 2)) then
+    else if Player.Pos.Y >= (MapHeight - (ScreenHeight div 2)) then
         ViewportY := MapHeight - ScreenHeight
     else
-        ViewportY := Player.Y - (ScreenHeight div 2);
+        ViewportY := Player.Pos.Y - (ScreenHeight div 2);
 end;
 
 procedure GetEvent(var Event: TEvent);
@@ -89,8 +89,8 @@ begin
     end;
 
     Player.Init(
-		MapWidth div 2,
-        MapHeight div 2,
+		0,
+        0,
         TilePlayer,
         ClrWhite,
         ClrClear
@@ -98,6 +98,7 @@ begin
 
     Randomize;
     GameMap.Init;
+    GameMap.GenMap(Player.Pos);
     InitEntities;
 
     Entities[1].Init(10, 20, TilePlayer, ClrRed, ClrClear);

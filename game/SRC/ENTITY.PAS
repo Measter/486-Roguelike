@@ -5,8 +5,7 @@ uses Types, Consts, Screen, Map;
 type
     TState = (Live, Dead, Unused);
 	TEntity = object
-		X: TMapX;
-       	Y: TMapY;
+		Pos: TPos;
        	T: Tile;
         Fg, Bg: Byte;
         State: TState;
@@ -21,8 +20,8 @@ implementation
 procedure TEntity.Init(NX: TMapX; NY: TMapY; NT: Tile; NFg, NBg: Byte);
 begin
 	State := Live;
-	X := NX;
-    Y := NY;
+	Pos.X := NX;
+    Pos.Y := NY;
     T := NT;
     Fg := NFg;
     Bg := NBg;
@@ -30,10 +29,10 @@ end;
 
 procedure TEntity.Draw;
 begin
-    if (X >= ViewportX) and (X < (ViewPortX + ScreenWidth))
-    	and (Y >= ViewportY) and (Y < (ViewportY + ScreenWidth))
+    if (Pos.X >= ViewportX) and (Pos.X < (ViewPortX + ScreenWidth))
+    	and (Pos.Y >= ViewportY) and (Pos.Y < (ViewportY + ScreenWidth))
         then
-			Screen.DrawTile(X, Y, T, Fg, Bg);
+			Screen.DrawTile(Pos.X, Pos.Y, T, Fg, Bg);
 end;
 
 procedure TEntity.Move(var GameMap: TGameMap; Dir: TDir);
@@ -41,16 +40,16 @@ var
 	TargetX: TMapX;
     TargetY: TMapY;
 begin
-	TargetX := X;
-    TargetY := Y;
-    if (Dir = Left) and (X > 0) then Dec(TargetX)
-    else if (Dir = Right) and (X < MapWidth-1) then Inc(TargetX)
-    else if (Dir = Up) and (Y > 0) then Dec(TargetY)
-    else if (Dir = Down) and (Y < MapHeight-1) then Inc(TargetY);
+	TargetX := Pos.X;
+    TargetY := Pos.Y;
+    if (Dir = Left) and (Pos.X > 0) then Dec(TargetX)
+    else if (Dir = Right) and (Pos.X < MapWidth-1) then Inc(TargetX)
+    else if (Dir = Up) and (Pos.Y > 0) then Dec(TargetY)
+    else if (Dir = Down) and (Pos.Y < MapHeight-1) then Inc(TargetY);
 
     if GameMap.Walkable(TargetX, TargetY) then begin
-		X := TargetX;
-        Y := TargetY;
+		Pos.X := TargetX;
+        Pos.Y := TargetY;
     end;
 end;
 
